@@ -43,7 +43,7 @@ check: calc
 CLEANFILES = \
   *~ *.o calc \
   parsecalc.cc parsecalc.hh parsecalc.output \
-  scancalc.cc
+  scancalc.cc location.hh position.hh stack.hh
 
 .PHONY: clean
 clean:

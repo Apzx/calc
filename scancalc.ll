@@ -1,17 +1,20 @@
 /* Prologue. */
 %option noyywrap
+
 %{
 #include "parsecalc.hh"
 
-# define YY_USER_ACTION                         \
-  *yylloc += yyleng;
+# define YY_USER_ACTION *yylloc += yyleng;
 
 %}
+
 %%
+
 %{
   yylloc->step();
   typedef yy::parser::token token;
 %}
+
 "+"         return token::TOK_PLUS;
 "-"         return token::TOK_MINUS;
 "*"         return token::TOK_STAR;
