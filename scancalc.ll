@@ -1,7 +1,7 @@
 /* Prologue. */
 %option noyywrap
 %{
-#include "parsecalc.h"
+#include "parsecalc.hh"
 
 # define YY_USER_ACTION                         \
   yylloc->last_column += yyleng;
@@ -27,5 +27,6 @@
 " "+        STEP(); continue;
 "\n"        yylloc->last_line += 1; yylloc->last_column = 1; STEP(); return EOL;
 .           fprintf (stderr, "error: invalid character: %c\n", *yytext);
+<<EOF>>		return TEOF;
 %%
 /* Epilogue.  */
