@@ -1,18 +1,18 @@
+%language "c++"
+%define api.token.prefix {TOK_}
+
+%define api.value.type variant
 %defines
 %error-verbose
 %debug
-%define api.pure full
+
 %locations
 %parse-param { unsigned* nerrs }
-%union
-{
-  int ival;
-}
 
 %code provides
 {
 #define YY_DECL                                 \
-  enum yytokentype yylex(YYSTYPE* yylval, YYLTYPE* yylloc)
+  yy::parser::token_type yylex(yy::parser::semantic_type* yylval, yy::parser::location_type* yylloc)
   YY_DECL;
 }
 
@@ -22,20 +22,15 @@
 #include <stdlib.h>
 }
 
-%code
-{
-  void yyerror(YYLTYPE* loc, unsigned* nerrs, const char* msg);
-}
-
 
 %expect 0
 %left "+" "-"
 %left "*" "/"
 
-%token <ival> INT "number"
-%type <ival> exp line
+%token <int> INT "number"
+%type <int> exp line
 
-%printer { fprintf(yyo, "%d", $$); } <ival>
+%printer { yyo << $$; } <int>
 
 %token
   LPAREN "("
@@ -45,6 +40,7 @@
   SLASH "/"
   STAR  "*"
   EOL "end of line"
+  EOF 0 "end of file"
 %%
 input:
   %empty
@@ -66,7 +62,7 @@ exp:
                    $$ = $1 / $3;
                  else
                    {
-                     yyerror (&@3, nerrs, "division by 0");
+                     error (@3, "division by 0");
                      YYERROR;
                    }
                }
@@ -76,17 +72,18 @@ exp:
 ;
 
 %%
-void yyerror(YYLTYPE* loc, unsigned* nerrs, const char* msg)
+
+void yy::parser::error (const location_type& loc, const std::string& msg)
 {
-  YY_LOCATION_PRINT(stderr, *loc);
-  fprintf(stderr, ": %s\n", msg);
+  std::cerr << loc;
+  std::cerr << ": " << msg << std::endl;
   *nerrs += 1;
 }
 
 int main()
 {
-  yydebug = !!getenv("YYDEBUG");
   unsigned nerrs = 0;
-  nerrs += !!yyparse(&nerrs);
+  yy::parser p(&nerrs);
+  nerrs += !!p.parse();
   return !!nerrs;
 }
