@@ -4,18 +4,12 @@
 #include "parsecalc.hh"
 
 # define YY_USER_ACTION                         \
-  yylloc->end.column += yyleng;
-
-# define STEP()                                 \
-  do {                                          \
-    yylloc->begin.line = yylloc->end.line;     \
-    yylloc->begin.column = yylloc->end.column; \
-  } while (0)
+  *yylloc += yyleng;
 
 %}
 %%
 %{
-  STEP();
+  yylloc->step();
   typedef yy::parser::token token;
 %}
 "+"         return token::TOK_PLUS;
@@ -25,8 +19,8 @@
 "("         return token::TOK_LPAREN;
 ")"         return token::TOK_RPAREN;
 [0-9]+      yylval->build<int>(strtol(yytext, 0, 10)) ;return token::TOK_INT;
-" "+        STEP(); continue;
-"\n"        yylloc->end.line += 1; yylloc->end.column = 1; STEP(); return token::TOK_EOL;
+" "+        yylloc->step(); continue;
+"\n"        yylloc->end.line += 1; yylloc->end.column = 1; yylloc->step(); return token::TOK_EOL;
 .           fprintf (stderr, "error: invalid character: %c\n", *yytext);
 <<EOF>>		return token::TOK_EOF;
 %%
